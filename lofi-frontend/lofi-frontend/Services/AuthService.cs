@@ -1,5 +1,8 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
+using lofi_frontend.Models;
 
 namespace lofi_frontend.Services;
 
@@ -8,6 +11,7 @@ public class AuthService
     private readonly AccessTokenService _ats;
     private readonly NavigationManager _nav;
     private readonly HttpClient _client;
+
 
     public AuthService(
         AccessTokenService accessTokenService,
@@ -40,10 +44,30 @@ public class AuthService
         return true;
     }
 
-    // public async Task<bool> Logout()
-    // {
-    //     var status = await _client.PostAsync()
-    // }
+    public async Task<bool> SignUp(UserWithPassword user)
+    {
+        Console.WriteLine("Signing up");
+        var response = await _client.PostAsJsonAsync(
+            "Auth/sign-up", new { user.UserData.Email, user.Password });
+        if (response.IsSuccessStatusCode)
+        {
+            await Login(user.UserData.Email, user.Password);
+            var rawJwt = await _ats.GetToken();
+            var readJwt = new JwtSecurityTokenHandler().ReadJwtToken(rawJwt);
+            var subClaim = readJwt.Claims.FirstOrDefault(c => c.Type == "sub");
+            user.UserData.Id = subClaim?.Value;
+
+            _client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", rawJwt);
+
+            var createResponse = await _client.PostAsJsonAsync("Users", user);
+
+            return createResponse.IsSuccessStatusCode;
+
+        }
+
+        return false;
+    }
 }
 
 public class AuthResponse

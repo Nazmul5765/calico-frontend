@@ -1,12 +1,15 @@
 ﻿@using System.Reflection.Metadata
 @using lofi_frontend.Models
 @using lofi_frontend.Models.Enum
+@using lofi_frontend.Security
+@using lofi_frontend.Services
 @page "/Signup"
 
 @rendermode InteractiveServer
 
 @inject NavigationManager NavigationManager;
-@inject HttpClient HttpClient;
+@inject AuthService AuthService
+@inject JWTAuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Signup</PageTitle>
 <div class="signup-page">
@@ -98,7 +101,12 @@
 								}
 							</InputSelect>
 						</div>
-
+						@if (!string.IsNullOrEmpty(_errorMessage))
+						{
+							<div class="alert alert-danger p-2 small text-center mb-3" role="alert" aria-live="assertive">
+								@_errorMessage
+							</div>
+						}
 						<button class="btn btn-primary w-100 mb-3" type="submit">Sign Up</button>
 
 						<hr />
@@ -119,6 +127,8 @@
 @code {
 	public UserWithPassword? user { get; set; }
 	public string ConfirmPassword { get; set; } = string.Empty;
+	private string? _errorMessage;
+
 
 	private EditContext? editContext;
 	private ValidationMessageStore? validationMessageStore;
@@ -168,28 +178,27 @@
 
 	private async Task HandleSignup()
 	{
-		var uri = "https://localhost:7245/Users";
+
+		_errorMessage = null;
 		try
 		{
-			var request = new HttpRequestMessage(HttpMethod.Post, uri)
-			{
-				Content = JsonContent.Create(user)
-			};
+			var success = await AuthService.SignUp(user);
 
-			var response = await HttpClient.SendAsync(request);
-
-			if (!response.IsSuccessStatusCode)
+			if (success)
 			{
-				Console.WriteLine("User creation failed. Do you already have an account?");
-				Console.WriteLine(await response.Content.ReadAsStringAsync());
+				AuthStateProvider.NotifyUserLogin();
+				NavigationManager.NavigateTo("/");
+			}
+			else
+			{
+				_errorMessage = "Could not create your account. Please try again.";
 			}
 
-			NavigationManager.NavigateTo($"/UserDashboard/{user.UserData.Id}");
 		}
 		catch (Exception ex)
 		{
 			Console.WriteLine($"Error creating user: {ex.Message}");
-			return;
+			_errorMessage = "An error occurred while creating your account. Please try again later.";
 		}
 	}
 
