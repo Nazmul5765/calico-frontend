@@ -1,11 +1,11 @@
-﻿@using lofi_frontend.Models
+﻿@using System.ComponentModel.DataAnnotations
+@using lofi_frontend.Models
 @using lofi_frontend.Security
 @using lofi_frontend.Services
 @page "/Login"
 
 @rendermode InteractiveServer
 
-@inject IHttpClientFactory HttpClientFactory
 @inject AuthService AuthService
 @inject JWTAuthenticationStateProvider AuthStateProvider
 @inject NavigationManager NavigationManager
@@ -24,10 +24,10 @@
 					<DataAnnotationsValidator />
 
 					<div class="mb-3">
-						<label for="username_input" class="form-label" aria-required="true">Username</label>
-						<InputText id="username_input" @bind-Value="LoginForm.Username" 
+						<label for="email_input" class="form-label" aria-required="true">Email address</label>
+						<InputText id="email_input" @bind-Value="LoginForm.Email"
 						           class="form-control" />
-						<div class="text-danger small"><ValidationMessage For="@(() => LoginForm.Username)" /></div>
+						<div class="text-danger small"><ValidationMessage For="@(() => LoginForm.Email)" /></div>
 					</div>
 
 					<div class="mb-3">
@@ -72,9 +72,6 @@
 
 @code {
 	private LoginFormData LoginForm { get; } = new();
-	private LoginRequest Request { get;} = new();
-	private HttpClient? HttpClient { get; set; }
-
 	public EditContext? EditContext { get; set; }
 
 	private string? _errorMessage;
@@ -82,66 +79,28 @@
 	protected override void OnInitialized()
 	{
 		EditContext = new EditContext(LoginForm);
-		HttpClient = HttpClientFactory.CreateClient("BackendApi");
 	}
 
 	private async Task HandleSignIn()
 	{
-		Console.WriteLine("Attempting to log in user");
-		try
-		{
-			await GetUserInfo();
-			await AuthenticateUser();
-			AuthStateProvider.NotifyUserLogin();
-			NavigationManager.NavigateTo("/");
-			NavigationManager.NavigateTo($"/Dashboard/user/studyowl", forceLoad: true);
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine(ex.Message);
-			_errorMessage = "User account not found";
-		}
-	}
-
-	private async Task GetUserInfo()
-	{
-		Console.WriteLine("Getting user data from backend");
-		if (HttpClient == null) throw new InvalidOperationException();
-
-		Console.WriteLine($"Base Address: {HttpClient.BaseAddress}");
-		var responseForUserData = 
-			await HttpClient.GetAsync(HttpClient.BaseAddress + "users/all");
-		Console.WriteLine(await responseForUserData.Content.ReadAsStringAsync());
-
-		if (!responseForUserData.IsSuccessStatusCode) 
-			throw new FileNotFoundException();
-
-		var userList = await responseForUserData.Content.ReadFromJsonAsync<List<UserData>>();
-		var userInfo = userList?.FirstOrDefault(
-				u => u.Username == LoginForm.Username);
-
-		if (userInfo == null) throw new InvalidDataException("No user found");
-
-		Console.WriteLine($"User Details: {userInfo.Username}");
-
-		Request.Email = userInfo.Email;
-		Request.Password = LoginForm.Password;
-	}
-
-	private async Task AuthenticateUser()
-	{
+		Console.WriteLine("Attempting to sign into email: " + LoginForm.Email);
 		_errorMessage = null;
-		Console.WriteLine("Attempting to sign in user: " + LoginForm.Username);
+
 		try
 		{
-			var response = await AuthService.Login(Request.Email, Request.Password);
+			var response = await AuthService.Login(LoginForm.Email, LoginForm.Password);
 			Console.WriteLine("Login response: " + response);
 
 			if (response)
 			{
 				AuthStateProvider.NotifyUserLogin();
-				Console.WriteLine("User logged in, navigating to dashboard");
-			} else Console.WriteLine("Failed to login");
+				Console.WriteLine("User logged in, navigating to homeage");
+				NavigationManager.NavigateTo("/");
+			}
+			else
+			{
+				_errorMessage = "Incorrect email or password";
+			}
 		}
 		catch (Exception ex)
 		{
@@ -152,13 +111,9 @@
 
 	public class LoginFormData
 	{
-		public string Username { get; set; } = "";
-		public string Password { get; set; } = "";
-	}
-
-	public class LoginRequest(string email = "", string password = "")
-	{
-		public string Email { get; set; } = email;
-		public string Password { get; set; } = password;
+		[Required] [EmailAddress]
+		public string Email { get; set; } = string.Empty;
+		[Required]
+		public string Password { get; set; } = string.Empty;
 	}
 }
