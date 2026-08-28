@@ -76,18 +76,8 @@
 	[Parameter]
 	public string UserId { get; set; }
 
-	[Parameter]
-	public UserData User { get; set; } = new UserData
-        {
-            Id = "test1",
-            FirstName = "Emma",
-            LastName = "Thompson",
-            Email = "emma.thompson@example.com",
-            Username = "studyowl",
-            Dob = new DateTime(1988, 04, 12),
-            Gender = Gender.Female,
-            Playlists = new List<Playlist>()
-        };
+	[Parameter, EditorRequired]
+	public UserData User { get; set; } = default!;
 
 	public HttpClient httpClient = new();
 

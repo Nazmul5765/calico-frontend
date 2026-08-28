@@ -1,26 +1,35 @@
-﻿@using lofi_frontend.Components.Pages.User.Components
+@using lofi_frontend.Components.Pages.User.Components
 @using lofi_frontend.Models
-@using lofi_frontend.Models.Enum
-@page "/Dashboard/User/{Username}"
+@using lofi_frontend.Services
+@page "/Dashboard"
+
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
 
 <PageTitle>User Dashboard</PageTitle>
 <div class="page-container dashboard-page">
-<DashboardElements User="@User" UserId="@User.Id" />
+@if (User != null)
+{
+    <DashboardElements User="@User" UserId="@User.Id" />
+}
 </div>
 
 @code {
-    [Parameter]
-    public string Username { get; set; } = string.Empty;
+    private UserData? User { get; set; }
 
-    [Parameter] public UserData User { get; set; } = new()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Id = "test1",
-        FirstName = "Emma",
-        LastName = "Thompson",
-        Email = "emma.thompson@example.com",
-        Username = "studyowl",
-        Dob = new DateTime(1988, 04, 12),
-        Gender = Gender.Female,
-        Playlists = new List<Playlist>()
-    };
+        if (!firstRender) return;
+
+        User = await AuthService.GetCurrentUser();
+
+        if (User == null)
+        {
+            NavigationManager.NavigateTo("/Login");
+        }
+        else
+        {
+            StateHasChanged();
+        }
+    }
 }

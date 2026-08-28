@@ -68,6 +68,20 @@ public class AuthService
 
         return false;
     }
+
+    public async Task<UserData?> GetCurrentUser()
+    {
+        var token = await _ats.GetToken();
+        if (string.IsNullOrWhiteSpace(token)) return null;
+
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.GetAsync("Users/me");
+        if (!response.IsSuccessStatusCode) return null;
+
+        return await response.Content.ReadFromJsonAsync<UserData>();
+    }
 }
 
 public class AuthResponse
