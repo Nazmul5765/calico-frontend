@@ -12,16 +12,35 @@
 {
     <DashboardElements User="@User" UserId="@User.Id" />
 }
+else if (LoadFailed)
+{
+    <p>Something went wrong loading your profile. <a href="/Dashboard">Try again</a>.</p>
+}
+else
+{
+    <p>Loading...</p>
+}
 </div>
 
 @code {
     private UserData? User { get; set; }
+    private bool LoadFailed { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
-        User = await AuthService.GetCurrentUser();
+        try
+        {
+            User = await AuthService.GetCurrentUser();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching current user: {ex.Message}");
+            LoadFailed = true;
+            StateHasChanged();
+            return;
+        }
 
         if (User == null)
         {
