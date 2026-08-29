@@ -21,7 +21,28 @@
 	private TaskTimer _taskTimer { get; set; } = new TaskTimer();
 	public bool IsCounting { get; set; } = false;
 
+	private bool isPomodoro = false;
+
 	private string TimerDisplay => new TimeSpan(0, 0, _taskTimer.Duration).ToString("c");
+
+	[Parameter]
+	public EventCallback OnPomodoroFinished { get; set; }
+
+	public async Task StartPomodoro()
+	{
+		isPomodoro = true;
+
+		_taskTimer.Duration = 25 * 60;
+
+		if (_timer == null)
+		{
+			SetTimer();
+		}
+
+		_timer?.Start();
+
+		await InvokeAsync(StateHasChanged);
+	}
 
 	private void SetTimer()
 	{
@@ -31,6 +52,7 @@
 
 	public async Task StartTimer()
 	{
+		//isPomodoro = false;
 		if (_timer == null) {
 			Console.WriteLine("Creating new timer");
 			SetTimer();
@@ -50,7 +72,23 @@
 
 	private void OnTimedEvent(Object source, ElapsedEventArgs e)
 	{
-		_taskTimer.Duration += 1;
+		if (isPomodoro)
+		{
+			if (_taskTimer.Duration > 0)
+			{
+				_taskTimer.Duration -= 1;
+			} else
+			{
+				_timer?.Stop();
+				InvokeAsync(OnPomodoroFinished.InvokeAsync);
+			}
+
+		}
+		else
+		{
+			_taskTimer.Duration += 1;
+		}
+
 		InvokeAsync(StateHasChanged);
 	}
 
@@ -73,11 +111,15 @@
 		if (_timer is not null && !_timer.Enabled)
 		{
 			Console.WriteLine("Disposing Timer");
+			_timer.Stop();
 			_timer.Dispose();
 			_timer = null;
 			_taskTimer.Duration = 0;
-			await InvokeAsync(StateHasChanged);
 		}
+			isPomodoro = false;
+			
+			await InvokeAsync(StateHasChanged);
+		
 	}
 
 	public async Task SaveTaskTime()
