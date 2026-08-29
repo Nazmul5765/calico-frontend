@@ -10,7 +10,7 @@
 		<div role="timer" aria-live="polite" aria-label="Task timer">
 		@TimerDisplay
 		</div>
-		<button class="btn p-0" style="filter: invert(1) brightness(2);" aria-label="Reset timer" @onclick="Dispose">
+		<button class="btn p-0" style="filter: invert(1) brightness(2);" aria-label="Reset timer" disabled="@IsCounting" @onclick="Dispose">
 			<img src="images/reset.png" height="30" />
 		</button>
 	</div>
@@ -28,6 +28,9 @@
 	[Parameter]
 	public EventCallback OnPomodoroFinished { get; set; }
 
+	[Parameter]
+	public EventCallback OnReset { get; set; }
+
 	public async Task StartPomodoro()
 	{
 		isPomodoro = true;
@@ -40,6 +43,7 @@
 		}
 
 		_timer?.Start();
+		IsCounting = true;
 
 		await InvokeAsync(StateHasChanged);
 	}
@@ -115,11 +119,11 @@
 			_timer.Dispose();
 			_timer = null;
 			_taskTimer.Duration = 0;
-		}
 			isPomodoro = false;
-			
+
 			await InvokeAsync(StateHasChanged);
-		
+			await OnReset.InvokeAsync();
+		}
 	}
 
 	public async Task SaveTaskTime()

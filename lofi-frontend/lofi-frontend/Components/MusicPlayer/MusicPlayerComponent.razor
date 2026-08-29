@@ -1,54 +1,47 @@
-﻿@using lofi_frontend.Components.Pages.Search
+@using lofi_frontend.Components.Pages.Search
 
 <div class="d-flex flex-column gap-3 justify-content-center align-items-center">
 
-		<div class="ratio ratio-16x9 rounded-3 shadow">
-			<YoutubePlayer @ref="PlayerReference" VideoCode="@VideoCode" />
+		<div class="ratio ratio-16x9 rounded-3 shadow position-relative">
+			<YoutubePlayer @ref="PlayerReference" VideoCode="@VideoCode" OnStateChanged="HandlePlayerStateChanged" />
+			<div class="position-absolute top-0 start-0 w-100 h-100" style="cursor: pointer;" role="button" aria-label="Toggle play/pause" @onclick="ToggleVideoPlayback"></div>
 		</div>
 
 	@* Control/Search Container *@
-	<section class="control-container d-flex flex-row justify-content-evenly align-items-center w-100 px-5" aria-label="Timer and video controls">
+	<section class="control-container d-flex flex-column gap-2 align-items-center w-100 px-5" aria-label="Timer and video controls">
 
-		@* Timer Component *@
-		<div class="d-flex flex-column gap-2 justify-content-center align-items-center">
-			<div class="d-flex flex-row align-items-center gap-2">
-				<div aria-label="Task timer" class="">
-					<TaskTimerComponent @ref="TimerReference"
-										OnPomodoroFinished="PauseTimerAndVideo" />
-				</div>
+		@* Timer + Controls, sharing one fixed width so they line up *@
+		<div class="d-flex flex-column gap-2" style="width: 19rem; max-width: 100%;">
+
+			@* Timer Component *@
+			<div aria-label="Task timer" class="w-100 text-center">
+				<TaskTimerComponent @ref="TimerReference"
+									OnPomodoroFinished="HandlePomodoroFinished"
+									OnReset="HandleReset" />
 			</div>
 
-			@* Timer Buttons *@
-			<div class="d-flex flex-row gap-2 justify-content-center w-100">
+			@* Controls *@
+			<div class="d-flex flex-row gap-2 w-100">
+				<button class="btn btn-warning btn-lg shadow-sm" style="flex: 1 1 0; min-width: 0;" aria-label="Start pomodoro timer"
+						disabled="@isPomodoroActive"
+						@onclick="StartPomodoroTimer">
+					Pomodoro
+				</button>
 				@if (!IsPlaying)
 				{
-					<button class="btn btn-warning btn-lg shadow-sm" aria-label="Start pomodoro timer"
-							@onclick="StartPomodoroTimer">
-						Pomodoro
-					</button>
-				}
-				else
-				{
-					<button class="btn btn-warning btn-lg shadow-sm" aria-label="Stop pomodoro timer"
-							@onclick="PauseTimerAndVideo">
-						Pomodoro
-					</button>
-				}
-				@if (!IsPlaying)
-				{
-					<button class="btn btn-success btn-lg shadow-sm" aria-label="Start timer and play video"
+					<button class="btn btn-success btn-lg shadow-sm" style="flex: 1 1 0; min-width: 0;" aria-label="Start timer and play video"
 							@onclick="StartTimerAndVideo">
 						<img src="images/play.png" aria-hidden="true" style="filter: invert(1) brightness(2);" height="30" />
 					</button>
 				}
 				else
 				{
-					<button class="btn btn-danger btn-lg shadow-sm" aria-label="Pause timer and video"
+					<button class="btn btn-danger btn-lg shadow-sm" style="flex: 1 1 0; min-width: 0;" aria-label="Pause timer and video"
 							@onclick="PauseTimerAndVideo">
 						<img src="images/pause.png" aria-hidden="true" style="filter: invert(1) brightness(2);" height="30" />
 					</button>
 				}
-				<button class="btn btn-dark btn-lg w-100" aria-label="Restart video and reset timer" @onclick="ResetVideo">
+				<button class="btn btn-dark btn-lg shadow-sm" style="flex: 1 1 0; min-width: 0;" aria-label="Restart video" @onclick="ResetVideo">
 					Restart Video
 				</button>
 
@@ -68,7 +61,7 @@
 	[Parameter]
 	public string VideoCode { get; set; } = "";
 
-	[Parameter] 
+	[Parameter]
 	public EventCallback<string> GetSearchTerm { get; set; }
 
 	[Parameter]
@@ -78,6 +71,7 @@
 	private TaskTimerComponent? TimerReference { get; set; }
 
 	private bool IsPlaying = false;
+	private bool isPomodoroActive = false;
 
 	public async Task LoadNewVideo(string code)
 	{
@@ -95,11 +89,57 @@
 	private async Task StartPomodoroTimer()
 	{
 		IsPlaying = true;
+		isPomodoroActive = true;
 
 		if (PlayerReference != null && TimerReference != null)
 		{
 			await PlayerReference.Play();
 			await TimerReference.StartPomodoro();
+		}
+	}
+
+	private async Task HandlePomodoroFinished()
+	{
+		isPomodoroActive = false;
+		await PauseTimerAndVideo();
+	}
+
+	private async Task HandleReset()
+	{
+		IsPlaying = false;
+		isPomodoroActive = false;
+	}
+
+	private async Task ToggleVideoPlayback()
+	{
+		if (IsPlaying)
+		{
+			await PauseTimerAndVideo();
+		}
+		else
+		{
+			await StartTimerAndVideo();
+		}
+	}
+
+	private async Task HandlePlayerStateChanged(int state)
+	{
+		// YouTube state codes: 1 = playing, 2 = paused, 0 = ended
+		if (state == 1 && !IsPlaying)
+		{
+			IsPlaying = true;
+			if (TimerReference != null)
+			{
+				await TimerReference.StartTimer();
+			}
+		}
+		else if ((state == 2 || state == 0) && IsPlaying)
+		{
+			IsPlaying = false;
+			if (TimerReference != null)
+			{
+				await TimerReference.StopTimer();
+			}
 		}
 	}
 
@@ -134,9 +174,12 @@
 
 	private async Task ResetVideo()
 	{
-		if (PlayerReference != null)
+		if (PlayerReference != null && TimerReference != null)
 		{
 			await PlayerReference.ResetTime();
+			await PlayerReference.Play();
+			await TimerReference.StartTimer();
+			IsPlaying = true;
 		}
 	}
 

@@ -4,6 +4,7 @@
 @page "/"
 
 @inject IHttpClientFactory HttpClientFactory;
+@inject IJSRuntime JS
 
 <PageTitle>Calico LoFi</PageTitle>
 
@@ -60,6 +61,7 @@
 			Console.WriteLine($"Code: {_videoCode}");
 			await MusicPlayerRef.LoadNewVideo(_videoCode);
 			await InvokeAsync(StateHasChanged);
+			await JS.InvokeVoidAsync("scrollTo", new { top = 0, left = 0, behavior = "smooth" });
 		}
 	}
 

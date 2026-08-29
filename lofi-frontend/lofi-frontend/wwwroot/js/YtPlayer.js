@@ -1,7 +1,9 @@
-﻿let player;
+let player;
+let dotNetHelper;
 
-window.initializeYouTubePlayer = (elementId, videoId) => {
+window.initializeYouTubePlayer = (elementId, videoId, dotNetRef) => {
     isPlayerReady = false;
+    dotNetHelper = dotNetRef;
     player = new YT.Player(elementId, {
         height: '100%',
         width: '100%',
@@ -19,6 +21,11 @@ window.initializeYouTubePlayer = (elementId, videoId) => {
                 const iframe = document.getElementById(elementId).querySelector('iframe');
                 if (iframe) {
                     iframe.setAttribute('title', 'Youtube music player');
+                }
+            },
+            onStateChange: (event) => {
+                if (dotNetHelper) {
+                    dotNetHelper.invokeMethodAsync('OnPlayerStateChanged', event.data);
                 }
             }
         }

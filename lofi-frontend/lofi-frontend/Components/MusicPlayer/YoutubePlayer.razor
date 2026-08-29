@@ -1,4 +1,5 @@
-﻿@using System.Text.RegularExpressions
+@using System.Text.RegularExpressions
+@implements IDisposable
 @inject IJSRuntime JS
 
 <div id="yt-player" class="rounded-3 w-100 h-100"></div>
@@ -7,19 +8,31 @@
 	[Parameter]
 	public string VideoCode { get; set; } = "ZvJQt559CTY";
 
+	[Parameter]
+	public EventCallback<int> OnStateChanged { get; set; }
+
+	private DotNetObjectReference<YoutubePlayer>? _dotNetRef;
+
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
+			_dotNetRef = DotNetObjectReference.Create(this);
 			await Task.Delay(500);
-			await JS.InvokeVoidAsync("initializeYouTubePlayer", "yt-player", VideoCode);
+			await JS.InvokeVoidAsync("initializeYouTubePlayer", "yt-player", VideoCode, _dotNetRef);
 		}
+	}
+
+	[JSInvokable]
+	public async Task OnPlayerStateChanged(int state)
+	{
+		await OnStateChanged.InvokeAsync(state);
 	}
 
 	public async Task Play() => await JS.InvokeVoidAsync("playYouTubeVideo");
 	public async Task Pause() => await JS.InvokeVoidAsync("stopYouTubeVideo");
 	public async Task ResetTime() => await JS.InvokeVoidAsync("resetSeeker");
-	public async Task LoadNewVideo(string code) 
+	public async Task LoadNewVideo(string code)
 	{
 		try
 		{
@@ -29,5 +42,10 @@
 		{
 			Console.WriteLine("Exception during Youtube Player LoadVideo execution" + ex.Message);
 		}
+	}
+
+	public void Dispose()
+	{
+		_dotNetRef?.Dispose();
 	}
 }

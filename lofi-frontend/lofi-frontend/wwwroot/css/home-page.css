@@ -69,6 +69,10 @@
     /*border-radius: 30px;*/
 }
 
+    .welcome-message h1:focus {
+        outline: none;
+    }
+
     .welcome-message h2 {
         font-size: 2rem;
         font-weight: 700;
