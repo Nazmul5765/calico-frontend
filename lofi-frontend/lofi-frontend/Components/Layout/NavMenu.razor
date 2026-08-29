@@ -25,11 +25,12 @@
                             </NavLink>
                         </li>
                         <li>
-                            <NavLink
+                            <button
                                 class="button-nav"
-                                href="/">
+                                type="button"
+                                @onclick="HandleLogout">
                                 Logout
-                            </NavLink>
+                            </button>
                             </li>
                     </Authorized>
                     <NotAuthorized>
@@ -47,5 +48,12 @@
     protected override void OnInitialized()
     {
         client = HttpClientFactory.CreateClient("BackendApi");
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        AuthStateProvider.NotifyUserLogout();
+        Navigation.NavigateTo("/");
     }
 }

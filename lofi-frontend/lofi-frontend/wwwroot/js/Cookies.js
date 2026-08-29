@@ -9,7 +9,7 @@ function setCookie(name, value, days) {
 }
 
 function deleteCookie(name) {
-    document.cookie = name + "=; Max-Age=-9999999;";
+    document.cookie = name + "=; Max-Age=-9999999; path=/";
 }
 
 function getCookie(name) {

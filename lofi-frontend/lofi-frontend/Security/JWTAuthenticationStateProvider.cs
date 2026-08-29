@@ -40,6 +40,11 @@ public class JWTAuthenticationStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
     }
 
+    public void NotifyUserLogout()
+    {
+        NotifyAuthenticationStateChanged(MarkAsUnAuthorised());
+    }
+
     private async Task<AuthenticationState> MarkAsUnAuthorised()
     {
         try

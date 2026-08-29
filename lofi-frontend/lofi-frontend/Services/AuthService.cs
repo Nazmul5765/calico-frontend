@@ -82,6 +82,27 @@ public class AuthService
 
         return await response.Content.ReadFromJsonAsync<UserData>();
     }
+
+    public async Task Logout()
+    {
+        var token = await _ats.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            _client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            try
+            {
+                await _client.PostAsync("Auth/sign-out", null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error calling sign-out: {ex.Message}");
+            }
+        }
+
+        await _ats.RemoveToken();
+    }
 }
 
 public class AuthResponse

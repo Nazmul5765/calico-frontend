@@ -47,6 +47,8 @@ namespace lofi_frontend
                 "JwtAuth", options => { });
             
             builder.Services.AddScoped<JWTAuthenticationStateProvider>();
+            builder.Services.AddScoped<AuthenticationStateProvider>(
+                sp => sp.GetRequiredService<JWTAuthenticationStateProvider>());
             builder.Services.AddCascadingAuthenticationState();
 
             var app = builder.Build();
