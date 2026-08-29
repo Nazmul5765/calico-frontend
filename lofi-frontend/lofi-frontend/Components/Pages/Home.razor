@@ -1,9 +1,11 @@
-﻿@using lofi_frontend.Components.MusicPlayer
+﻿@using Google.Apis.Http
+@using lofi_frontend.Components.MusicPlayer
 @using lofi_frontend.Components.Pages.Search
 @using lofi_frontend.Models
+@using IHttpClientFactory = System.Net.Http.IHttpClientFactory
 @page "/"
 
-@inject IHttpClientFactory ClientFactory;
+@inject IHttpClientFactory HttpClientFactory;
 
 <PageTitle>Calico LoFi</PageTitle>
 
@@ -41,14 +43,13 @@
 	private string? ErrorMessage { get; set; }
 	private List<Music>? YoutubeVideos { get; set; }
 
-	private HttpClient HttpClient { get; set; } = new();
+	// private HttpClient HttpClient { get; set; } = new();
 
 	private MusicPlayerComponent? MusicPlayerRef { get; set; }
 	private SearchList? SearchResultRef { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
-		ClientFactory.CreateClient("BackendApi");
 		await GetVideo();
 	}
 
@@ -82,16 +83,10 @@
 			ErrorMessage = null;
 			Console.WriteLine("Creating request");
 
-			var request = new HttpRequestMessage(
-				HttpMethod.Get, " https://localhost:7245/Youtube" + $"?search={SearchTerm}"
+			var httpClient = HttpClientFactory.CreateClient("BackendApi");
+			YoutubeVideos = await httpClient.GetFromJsonAsync<List<Music>>(
+				"Youtube" + $"?search={SearchTerm}"
 			);
-
-			Console.WriteLine($"Request Info: URL {request.RequestUri}");
-
-			var response = await HttpClient.SendAsync(request);
-
-			YoutubeVideos = await response.Content.ReadFromJsonAsync<List<Music>>();
-
 		}
         catch (Exception ex)
         {

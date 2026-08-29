@@ -16,9 +16,11 @@ namespace lofi_frontend
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
 
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
+
             builder.Services.AddHttpClient("BackendApi", client =>
             {
-                client.BaseAddress = new Uri("https://localhost:7245/");
+                client.BaseAddress = new Uri(apiBaseUrl);
             }).ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new HttpClientHandler();

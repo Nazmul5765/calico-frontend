@@ -101,7 +101,7 @@
         {
             selectedSection = "projects";
 
-            projects = await httpClient.GetFromJsonAsync<List<Project>>($"https://localhost:7245/projects");
+            projects = await httpClient.GetFromJsonAsync<List<Project>>($"projects");
             projects = projects?.FindAll(project => project.UserId == User.Id).ToList();
 
         }
@@ -116,7 +116,7 @@
         try
         {
             selectedSection = "playlists";
-            playlists = await httpClient.GetFromJsonAsync<List<Playlist>>("/playlist");
+            playlists = await httpClient.GetFromJsonAsync<List<Playlist>>("playlist");
             playlists = playlists.FindAll(playlist => playlist.UserId == User.Id).ToList();
         }
         catch (Exception ex)
@@ -129,7 +129,7 @@
         try
         {
             selectedSection = "faveTracks";
-            faveTracks = await httpClient.GetFromJsonAsync<List<Music>>("/music");
+            faveTracks = await httpClient.GetFromJsonAsync<List<Music>>("music");
             
         }
         catch (Exception ex)

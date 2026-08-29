@@ -2,7 +2,7 @@
 @using System.Timers
 @using lofi_frontend.Models
 
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
 
 <div class="display-6 fw-bold text-white font-monospace shadow-sm bg-dark bg-opacity-20 py-3 px-4 rounded-3">
@@ -94,7 +94,7 @@
 			_timer.Stop();
 		}
 
-		var url = "https://localhost:7245/TaskTimer";
+		var url = "TaskTimers";
 
 		_taskTimer.DateCreated = DateTime.UtcNow;
 		_taskTimer.DateUpdated = DateTime.UtcNow;
@@ -104,7 +104,8 @@
 
 		try
 		{
-			var response = await HttpClient.PostAsJsonAsync<TaskTimer>(url, _taskTimer);
+			var httpClient = HttpClientFactory.CreateClient("BackendApi");
+			var response = await httpClient.PostAsJsonAsync<TaskTimer>(url, _taskTimer);
 			Console.WriteLine(await response.Content.ReadAsStringAsync());
 
 			if (response.IsSuccessStatusCode)

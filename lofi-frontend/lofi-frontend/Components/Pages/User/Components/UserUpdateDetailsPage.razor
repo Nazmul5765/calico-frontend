@@ -1,6 +1,6 @@
 ﻿@using lofi_frontend.Models
 @using lofi_frontend.Models.Enum
-@inject HttpClient httpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @implements IDisposable
 
@@ -127,6 +127,7 @@
             isLoading = true;
             errorMessage = string.Empty;
             successMessage = string.Empty;
+            var httpClient = HttpClientFactory.CreateClient("BackendApi");
             var currentUser = await httpClient.GetFromJsonAsync<UserData>($"/Users/{Id}", cts.Token);
             if (currentUser != null)
             {
@@ -164,6 +165,7 @@
 
         try
         {
+            var httpClient = HttpClientFactory.CreateClient("BackendApi");
             var response = await httpClient.PutAsJsonAsync($"/Users/{Id}", user, cts.Token);
 
             if (response.IsSuccessStatusCode)

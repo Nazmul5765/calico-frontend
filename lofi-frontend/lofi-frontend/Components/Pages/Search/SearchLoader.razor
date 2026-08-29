@@ -1,7 +1,7 @@
 ﻿@using System.Net.Http.Json
 @using lofi_frontend.Models
 @using lofi_frontend.Components.Layout
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 
 <SearchField></SearchField>
 
@@ -38,8 +38,9 @@ else
         {
             errorMessage = null;
 
-            youtubeVideos = await Http.GetFromJsonAsync<List<Music>>(
-                $"https:localhost:7245/Youtube?search={Uri.EscapeDataString(searchBox)}"
+            var httpClient = HttpClientFactory.CreateClient("BackendApi");
+            youtubeVideos = await httpClient.GetFromJsonAsync<List<Music>>(
+                $"Youtube?search={Uri.EscapeDataString(searchBox)}"
             );
         }
         catch (Exception ex)
