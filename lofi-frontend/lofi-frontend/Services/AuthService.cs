@@ -83,6 +83,22 @@ public class AuthService
         return await response.Content.ReadFromJsonAsync<UserData>();
     }
 
+    public async Task<bool> UpdateUser(UserData user)
+    {
+        var token = await _ats.GetToken();
+        if (string.IsNullOrWhiteSpace(token)) return false;
+
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.PutAsJsonAsync("Users", user);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"UpdateUser failed: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+        }
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task Logout()
     {
         var token = await _ats.GetToken();

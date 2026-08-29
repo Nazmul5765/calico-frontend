@@ -1,15 +1,14 @@
-﻿@using lofi_frontend.Models
+@using lofi_frontend.Models
 @using lofi_frontend.Models.Enum
-@inject IHttpClientFactory HttpClientFactory
-@inject NavigationManager NavigationManager
-@implements IDisposable
+@using lofi_frontend.Services
+@inject AuthService AuthService
 
 <div class="container-fluid d-flex justify-content-center align-items-start min-vh-100">
     <div class="card p-4 shadow" style="width: 100%; max-width: 500px;">
 
         <h2 class="mb-3">Update Your Details</h2>
-        
-        @* @if (!string.IsNullOrEmpty(successMessage))
+
+        @if (!string.IsNullOrEmpty(successMessage))
         {
             <div class="alert alert-success" aria-live="polite">
                 @successMessage
@@ -19,9 +18,9 @@
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <div class="alert alert-danger" aria-live="assertive" role="alert">@errorMessage</div>
-        } *@
+        }
 
-        @* @if (isLoading)
+        @if (isLoading)
         {
             <div class="text-center p-3">
                 <div class="spinner-border text-primary" role="status" aria-label="Loading"></div>
@@ -29,7 +28,7 @@
             </div>
         }
         else
-        { *@
+        {
             <EditForm Model="user"
                       OnValidSubmit="HandleUpdateDetails"
                       FormName="UpdateDetailsForm">
@@ -105,56 +104,35 @@
                 <hr />
 
             </EditForm>
-        @* } *@
+        }
 
     </div>
 </div>
 
 @code {
-    [Parameter] public int Id { get; set; }
     public UserData user { get; set; } = new UserData();
     private bool isLoading = true;
     private string errorMessage = string.Empty;
     private string successMessage = string.Empty;
     private bool isSaving = false;
-    private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        user = new UserData();
-        try
-        {
-            isLoading = true;
-            errorMessage = string.Empty;
-            successMessage = string.Empty;
-            var httpClient = HttpClientFactory.CreateClient("BackendApi");
-            var currentUser = await httpClient.GetFromJsonAsync<UserData>($"/Users/{Id}", cts.Token);
-            if (currentUser != null)
-            {
-                user = currentUser;
-            }
-            else
-            {
-                errorMessage = "User not found.";
-            }
+        if (!firstRender) return;
 
-        }
-        catch (OperationCanceledException)
+        var currentUser = await AuthService.GetCurrentUser();
+        if (currentUser != null)
         {
-            Console.WriteLine("Operation was cancelled.");
+            user = currentUser;
         }
-        catch (Exception ex)
+        else
         {
-            errorMessage = "Failed to load user details.";
-            Console.WriteLine($"Error fetching user details: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
+            errorMessage = "Could not load your details.";
         }
 
+        isLoading = false;
+        StateHasChanged();
     }
-
 
     private async Task HandleUpdateDetails()
     {
@@ -162,40 +140,17 @@
         successMessage = string.Empty;
         errorMessage = string.Empty;
 
+        var success = await AuthService.UpdateUser(user);
 
-        try
+        if (success)
         {
-            var httpClient = HttpClientFactory.CreateClient("BackendApi");
-            var response = await httpClient.PutAsJsonAsync($"/Users/{Id}", user, cts.Token);
+            successMessage = "Profile updated successfully!";
+        }
+        else
+        {
+            errorMessage = "Failed to save changes. Please try again.";
+        }
 
-            if (response.IsSuccessStatusCode)
-            {
-                successMessage = "Profile updated successfully!";
-            }
-            else
-            {
-                errorMessage = "Failed to save changes. Please try again.";
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine("Save operation was cancelled.");
-        }
-        catch (Exception ex)
-        {
-            errorMessage = "An error occurred while saving.";
-            Console.WriteLine($"Error updating details: {ex.Message}");
-        }
-        finally
-        {
-            isSaving = false;
-        }
+        isSaving = false;
     }
-
-        public void Dispose()
-    {
-        cts.Cancel();
-        cts.Dispose();
-    }
-
-    }
+}
