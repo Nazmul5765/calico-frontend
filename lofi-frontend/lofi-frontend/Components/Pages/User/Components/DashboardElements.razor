@@ -1,7 +1,9 @@
 ﻿@using lofi_frontend.Models
 @using lofi_frontend.Models.Enum
+@using lofi_frontend.Services
 
 @inject IHttpClientFactory HttpClientFactory
+@inject AccessTokenService AccessTokenService
 
 <div class="dashboard-layout">
     
@@ -92,6 +94,14 @@
     protected override async Task OnInitializedAsync()
     {
 		httpClient = HttpClientFactory.CreateClient("BackendApi");
+
+		var token = await AccessTokenService.GetToken();
+		if (!string.IsNullOrWhiteSpace(token))
+		{
+			httpClient.DefaultRequestHeaders.Authorization =
+				new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+		}
+
         await ShowProjects();
     }
 
@@ -116,8 +126,7 @@
         try
         {
             selectedSection = "playlists";
-            playlists = await httpClient.GetFromJsonAsync<List<Playlist>>("playlist");
-            playlists = playlists.FindAll(playlist => playlist.UserId == User.Id).ToList();
+            playlists = await httpClient.GetFromJsonAsync<List<Playlist>>("playlist") ?? new List<Playlist>();
         }
         catch (Exception ex)
         {
