@@ -29,7 +29,7 @@ public class JwtAuthenticationHandler : AuthenticationHandler<CustomOption>
 
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return Task.FromResult(AuthenticateResult.NoResult());
         }

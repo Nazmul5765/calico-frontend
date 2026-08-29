@@ -41,11 +41,4 @@
 			await GetVideoCode.InvokeAsync(YoutubeVideo.URL);
         }
     }
-
-    private string GetUrl()
-    {
-        var videoId = YoutubeVideo.URL.Split("v=").Last();
-
-        return $"https://www.youtube.com/embed/{videoId}";
-    }
 }

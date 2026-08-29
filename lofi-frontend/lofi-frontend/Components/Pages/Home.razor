@@ -1,8 +1,6 @@
-﻿@using Google.Apis.Http
-@using lofi_frontend.Components.MusicPlayer
+﻿@using lofi_frontend.Components.MusicPlayer
 @using lofi_frontend.Components.Pages.Search
 @using lofi_frontend.Models
-@using IHttpClientFactory = System.Net.Http.IHttpClientFactory
 @page "/"
 
 @inject IHttpClientFactory HttpClientFactory;
@@ -42,8 +40,6 @@
 	private string SearchTerm { get; set; } = "";
 	private string? ErrorMessage { get; set; }
 	private List<Music>? YoutubeVideos { get; set; }
-
-	// private HttpClient HttpClient { get; set; } = new();
 
 	private MusicPlayerComponent? MusicPlayerRef { get; set; }
 	private SearchList? SearchResultRef { get; set; }

@@ -1,5 +1,4 @@
 ﻿@using lofi_frontend.Components.Pages.User.Components
-@using lofi_frontend.Models
 @page "/Settings"
 @rendermode InteractiveServer
 @using lofi_frontend.Components.Pages
@@ -21,13 +20,9 @@
 		<section class="settings-content d-flex flex-column justify-content-top align-items-center px-5" aria-labelledby="settings-heading">
 
 			@* <h1 id="settings-heading" class="text-center mb-4">Settings</h1> *@
-			@if (selectedSection == "")
+			@if (selectedSection == "" || selectedSection == "ChangePassword")
 			{
 				<UserUpdatePasswordPage />
-			}
-			@if (selectedSection == "ChangePassword")
-			{
-				<UserUpdatePasswordPage Id="@currentUserId" />
 			}
 			@if (selectedSection == "UpdateDetails")
 			{
@@ -52,11 +47,7 @@
 
 @code {
 
-	private UserSettingsForm userSettings = new UserSettingsForm();
-	private string errorMessage = string.Empty;
 	private string selectedSection = "";
-	private int currentUserId = 1; // Placeholder for the current user's ID, replace with actual user ID retrieval logic
-
 
 	private void ChangePassword()
 	{
@@ -78,13 +69,6 @@
 	private void DeleteAccount()
 	{
 		selectedSection = "DeleteAccount";
-	}
-
-	private async Task UpdateUserSettings()
-	{
-
-
-		return;
 	}
 
 }

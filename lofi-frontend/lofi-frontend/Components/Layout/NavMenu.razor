@@ -1,7 +1,6 @@
 ﻿@using lofi_frontend.Security
 @using lofi_frontend.Services
 @attribute [Authorize]
-@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject JWTAuthenticationStateProvider AuthStateProvider
@@ -43,13 +42,6 @@
 </nav>
 
 @code {
-    public HttpClient client = new();
-
-    protected override void OnInitialized()
-    {
-        client = HttpClientFactory.CreateClient("BackendApi");
-    }
-
     private async Task HandleLogout()
     {
         await AuthService.Logout();

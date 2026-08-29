@@ -1,7 +1,4 @@
-﻿@using lofi_frontend.Models
-@inject HttpClient Http
-
-<div class="d-flex flex-row justify-content-around align-content-center gap-3 h-100">
+﻿<div class="d-flex flex-row justify-content-around align-content-center gap-3 h-100">
 
 <InputText
     class="input-group-text w-100"
@@ -14,8 +11,6 @@
 </div>
 @code {
     private string _searchBox = "";
-    private List<Music>? youtubeVideos;
-    private string? errorMessage;
 
     [Parameter] public EventCallback<string> GetSearchTerm { get; set; }
 
@@ -26,27 +21,4 @@
             await this.GetSearchTerm.InvokeAsync(this._searchBox);
         }
     }
-
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     await GetVideo();
-    // }
-
-    // private async Task GetVideo()
-    // {
-    //     try
-    //     {
-    //         errorMessage = null;
-
-    //         youtubeVideos = await Http.GetFromJsonAsync<List<Music>>(
-    //             $"https:localhost:7245/Youtube?search={Uri.EscapeDataString(searchBox)}"
-    //         );
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         errorMessage = $"Could not load videos: {ex.Message}";
-    //         youtubeVideos = new List<Music>();
-    //     }
-    // }
-
 }

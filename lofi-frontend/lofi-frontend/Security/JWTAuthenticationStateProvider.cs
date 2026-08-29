@@ -29,7 +29,7 @@ public class JWTAuthenticationStateProvider : AuthenticationStateProvider
             
             return await Task.FromResult(new AuthenticationState(principal));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return await MarkAsUnAuthorised();
         }
